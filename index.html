@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Demo Energy Genesys Cloud web messaging demonstration">
+  <title>Demo Energy — Support Transfer Demo</title>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <script type="text/javascript" charset="utf-8">
+    (function (g, e, n, es, ys) {
+      g['_genesysJs'] = e;
+      g[e] = g[e] || function () {
+        (g[e].q = g[e].q || []).push(arguments)
+      };
+      g[e].t = 1 * new Date();
+      g[e].c = es;
+      ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
+    })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
+      environment: 'prod',
+      deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
+    });
+  </script>
+
+  <script src="app.js" defer></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <div>
+        <div class="brand-name">DEMO ENERGY</div>
+        <div class="brand-subtitle">Genesys Cloud Messaging Demo</div>
+      </div>
+    </div>
+    <div class="header-pill">INTERNAL DEMO</div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">START SERVICE SUPPORT</div>
+        <h1>New Construction Support</h1>
+        <p>
+          Launch a Messenger conversation with the specialist team while keeping
+          the current customer context attached to the request.
+        </p>
+      </div>
+      <div class="hero-badge">
+        <strong>Demo flow</strong>
+        <span>Context → Messenger → Queue → Specialist</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="card">
+        <div class="card-heading">
+          <div>
+            <div class="section-kicker">CURRENT INTERACTION</div>
+            <h2>Customer context</h2>
+          </div>
+          <span id="modeBadge" class="mode-badge">Normal</span>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            <span>Customer / business name</span>
+            <input id="customerName" autocomplete="off">
+          </label>
+
+          <label>
+            <span>Account number</span>
+            <input id="accountNumber" autocomplete="off">
+          </label>
+
+          <label class="full">
+            <span>Service address</span>
+            <input id="serviceAddress" autocomplete="off">
+          </label>
+
+          <label>
+            <span>Interaction ID</span>
+            <input id="interactionId" autocomplete="off">
+          </label>
+
+          <label>
+            <span>Purpose</span>
+            <select id="requestReason">
+              <option value="New Construction">New Construction</option>
+              <option value="NAICS code">NAICS code</option>
+              <option value="Option 3">Option 3</option>
+              <option value="Option 4">Option 4</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="action-row">
+          <button id="launch" class="primary">Launch Messenger</button>
+          <button id="updateContext" class="secondary">Update Context</button>
+        </div>
+
+        <div id="status" class="status" aria-live="polite"></div>
+      </div>
+
+      <aside class="card scenario-card">
+        <div class="section-kicker">DEMO SCENARIOS</div>
+        <h2>One-click setup</h2>
+        <p class="muted">Each shortcut loads a different synthetic customer/context combination.</p>
+
+        <div class="scenario-list">
+          <a href="?scenario=normal" data-scenario="normal">
+            <span class="scenario-title">Normal / Open Hours</span>
+            <span class="scenario-detail">Jane Smith · New Construction</span>
+          </a>
+
+          <a href="?scenario=naics" data-scenario="naics">
+            <span class="scenario-title">NAICS code</span>
+            <span class="scenario-detail">Bright Star Builders LLC</span>
+          </a>
+
+          <a href="?scenario=option3" data-scenario="option3">
+            <span class="scenario-title">Option 3</span>
+            <span class="scenario-detail">Taylor Morgan</span>
+          </a>
+
+          <a href="?scenario=option4" data-scenario="option4">
+            <span class="scenario-title">Option 4</span>
+            <span class="scenario-detail">Avery Chen</span>
+          </a>
+
+          <a href="?scenario=closed" data-scenario="closed">
+            <span class="scenario-title">Closed-hours test</span>
+            <span class="scenario-detail">Preloads a closed-hours customer</span>
+          </a>
+
+          <a href="?scenario=holiday" data-scenario="holiday">
+            <span class="scenario-title">Holiday test</span>
+            <span class="scenario-detail">Preloads a holiday customer</span>
+          </a>
+
+          <a href="?scenario=emergency" data-scenario="emergency">
+            <span class="scenario-title">Emergency test</span>
+            <span class="scenario-detail">Preloads an emergency customer</span>
+          </a>
+
+          <a href="?scenario=custom" data-scenario="custom">
+            <span class="scenario-title">Custom</span>
+            <span class="scenario-detail">Edit any field manually</span>
+          </a>
+        </div>
+
+        <div class="schedule-note">
+          <strong>Schedule note:</strong>
+          Closed, Holiday, and Emergency links only preload their synthetic
+          scenario. The Architect flow still uses the actual Genesys Schedule
+          Group to determine availability.
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout lower">
+      <div class="card">
+        <div class="section-kicker">WHAT THE SPECIALIST RECEIVES</div>
+        <h2>Expected message transcript</h2>
+        <div class="transcript">
+          <div class="bubble system">
+            Thank you for contacting support. An agent will be with you shortly.
+          </div>
+          <div class="bubble context">
+            <strong>Customer name:</strong> Jane Smith<br>
+            <strong>Account number:</strong> ACCT-104872<br>
+            <strong>Service address:</strong> 1200 Congress Ave, Austin, TX 78701<br>
+            <strong>Request reason:</strong> New Construction<br>
+            <strong>Interaction ID:</strong> INT-DEMO-1001
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-kicker">IMPLEMENTATION</div>
+        <h2>How this demo works</h2>
+        <ol class="steps">
+          <li>Select a customer scenario.</li>
+          <li>Confirm the purpose.</li>
+          <li>Click <strong>Launch Messenger</strong>.</li>
+          <li>The page writes the custom attributes first.</li>
+          <li>Messenger opens only after that write succeeds.</li>
+          <li>The published inbound message flow retrieves the attributes and routes the interaction.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="privacy">
+      <strong>Demo data only.</strong>
+      Use synthetic values. Do not enter passwords, authentication codes,
+      payment-card data, bank-account details, full Social Security numbers,
+      security-question answers, or unrelated sensitive information.
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    Demo Energy · Genesys Cloud Web Messaging demonstration
+  </footer>
+</body>
+</html>
