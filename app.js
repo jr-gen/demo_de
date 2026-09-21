@@ -2,54 +2,53 @@
   "use strict";
 
   const params = new URLSearchParams(window.location.search);
-  const initialContext = {
+
+  // Demo context is exposed here so a future launching application can replace
+  // these values. The interaction ID can also be passed as ?interactionId=...
+  const context = {
     customerName: "Jane Smith",
     accountNumber: "ACCT-104872",
     serviceAddress: "1200 Congress Ave, Austin, TX 78701",
     interactionId: params.get("interactionId") || "INT-DEMO-1001"
   };
 
-  function $(id) {
-    const element = document.getElementById(id);
-    if (!element) throw new Error(`Missing element: ${id}`);
-    return element;
-  }
+  const $ = (id) => {
+    const el = document.getElementById(id);
+    if (!el) throw new Error(`Missing element: ${id}`);
+    return el;
+  };
 
   function setStatus(message, isError = false) {
-    const status = $("status");
-    status.textContent = message;
-    status.classList.toggle("error", isError);
+    const el = $("status");
+    el.textContent = message;
+    el.classList.toggle("error", isError);
   }
 
   function renderContext() {
-    $("customerName").textContent = initialContext.customerName;
-    $("accountNumber").textContent = initialContext.accountNumber;
-    $("serviceAddress").textContent = initialContext.serviceAddress;
-    $("interactionId").textContent = initialContext.interactionId;
+    $("customerName").textContent = context.customerName;
+    $("accountNumber").textContent = context.accountNumber;
+    $("serviceAddress").textContent = context.serviceAddress;
+    $("interactionId").textContent = context.interactionId;
   }
 
-  function getPurpose() {
-    const purpose = $("requestReason").value;
-    if (!purpose) throw new Error("Choose a purpose before starting the support chat.");
-    return purpose;
-  }
-
-  function writeParticipantData(purpose, onSuccess) {
+  function setMessengerContext(purpose, onSuccess) {
     if (typeof window.Genesys !== "function") {
       throw new Error("Messenger is not loaded. Paste the Messenger Deployment snippet into index.html.");
     }
 
+    // Important: write the custom attributes first; open Messenger only after
+    // Database.set succeeds.
     window.Genesys(
       "command",
       "Database.set",
       {
         messaging: {
           customAttributes: {
-            customerName: initialContext.customerName,
-            accountNumber: initialContext.accountNumber,
-            serviceAddress: initialContext.serviceAddress,
+            customerName: context.customerName,
+            accountNumber: context.accountNumber,
+            serviceAddress: context.serviceAddress,
             requestReason: purpose,
-            interactionId: initialContext.interactionId
+            interactionId: context.interactionId
           }
         }
       },
@@ -59,28 +58,28 @@
       },
       (error) => {
         console.error("Genesys Database.set failed:", error);
-        setStatus("We could not initialize the support conversation. Please try again.", true);
         $("requestReason").disabled = false;
+        setStatus("The support conversation could not be initialized. Please try again.", true);
       }
     );
   }
 
   function startSupport() {
     const select = $("requestReason");
-    let purpose;
+    const purpose = select.value;
+    if (!purpose) return;
+
+    select.disabled = true;
+    setStatus("Preparing your support conversation…");
 
     try {
-      purpose = getPurpose();
-      select.disabled = true;
-      setStatus("Preparing your support conversation…");
-
-      writeParticipantData(purpose, () => {
+      setMessengerContext(purpose, () => {
         window.Genesys("command", "Messenger.open");
       });
     } catch (error) {
+      console.error(error);
       select.disabled = false;
       setStatus(error.message || "Unable to start support.", true);
-      console.error(error);
     }
   }
 
