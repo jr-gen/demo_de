@@ -1,82 +1,74 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Demo Energy — Support</title>
-<link rel="stylesheet" href="styles.css">
-
-<script type="text/javascript" charset="utf-8">
-  (function (g, e, n, es, ys) {
-    g['_genesysJs'] = e;
-    g[e] = g[e] || function () {
-      (g[e].q = g[e].q || []).push(arguments)
-    };
-    g[e].t = 1 * new Date();
-    g[e].c = es;
-    ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
-  })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
-    environment: 'prod',
-    deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
-  });
-</script>
-
-<script src="app.js" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Construction Assistance</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header class="site-header">
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-    <div><div class="brand-name">DEMO ENERGY</div><div class="brand-subtitle">Genesys Cloud Support</div></div>
-  </div>
-  <div class="demo-pill">INTERNAL DEMO</div>
-</header>
+  <main class="app-shell" aria-labelledby="page-title">
+    <section id="requestView" class="panel">
+      <header class="panel-header">
+        <h1 id="page-title">New Construction Assistance</h1>
+      </header>
 
-<main class="page">
-  <section class="hero">
-    <div class="eyebrow">SUPPORT</div>
-    <h1>Support</h1>
-    <p>Choose a purpose to chat with a specialist. Your current customer context is already captured and will be sent with the request.</p>
-  </section>
+      <form id="requestForm" novalidate>
+        <div class="field">
+          <label for="purpose">Purpose</label>
+          <select id="purpose" name="requestPurpose" required>
+            <option value="" selected disabled>Choose a purpose...</option>
+            <option value="NAICS Code">NAICS Code</option>
+            <option value="Inspection Removal">Inspection Removal</option>
+          </select>
+        </div>
 
-  <section class="card request-card">
-    <div class="section-kicker">REQUEST SUPPORT</div>
-    <label class="purpose-label" for="requestReason">Purpose</label>
-    <select id="requestReason" aria-describedby="purposeHelp">
-      <option value="" selected disabled>Choose a purpose…</option>
-      <option value="New Construction">New Construction</option>
-      <option value="NAICS code">NAICS code</option>
-      <option value="Option 3">Option 3</option>
-      <option value="Option 4">Option 4</option>
-    </select>
-    <p id="purposeHelp" class="help-text">Choose a purpose to chat with a specialist.</p>
-    <p id="status" class="status" aria-live="polite"></p>
-  </section>
+        <div class="field">
+          <label for="premiseID">Premise Code / Address</label>
+          <input
+            id="premiseID"
+            name="premiseID"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="250"
+            placeholder="Enter premise code or address"
+            required>
+        </div>
 
-  <section class="card context-card">
-    <div class="section-kicker">CAPTURED CONTEXT</div>
-    <ul class="context-list">
-      <li><span>Customer / business name</span><strong id="customerName"></strong></li>
-      <li><span>Account number</span><strong id="accountNumber"></strong></li>
-      <li><span>Service address</span><strong id="serviceAddress"></strong></li>
-      <li><span>Interaction ID</span><strong id="interactionId"></strong></li>
-    </ul>
-    <p class="context-note">This context is provided to Messenger automatically; the representative does not need to re-enter it.</p>
-  </section>
+        <button id="submitButton" class="primary-button" type="submit">
+          Request Specialist Assistance
+        </button>
 
-  <section class="explainer">
-    <div class="section-kicker">HOW IT WORKS</div>
-    <h2>Simple handoff from the landing page to Genesys Cloud</h2>
-    <div class="explainer-grid">
-      <div class="explainer-item"><div class="num">1</div><div><strong>Landing page</strong><p>The calling application exposes the current customer and interaction context to this page through JavaScript or URL parameters.</p></div></div>
-      <div class="explainer-item"><div class="num">2</div><div><strong>Messenger</strong><p>After a purpose is selected, the page passes the context to Messenger as custom participant data and opens the conversation.</p></div></div>
-      <div class="explainer-item"><div class="num">3</div><div><strong>Genesys Cloud</strong><p>The published message flow receives the request, applies the configured business-hours logic, and connects the interaction to the support queue.</p></div></div>
-      <div class="explainer-item"><div class="num">4</div><div><strong>Specialist</strong><p>The specialist receives the request with the supplied context in the interaction and can respond directly.</p></div></div>
-    </div>
-  </section>
+        <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
+      </form>
 
-  <div class="privacy"><strong>Demo data only.</strong> Use synthetic values. Do not enter passwords, authentication codes, payment-card data, bank-account details, full Social Security numbers, security-question answers, or unrelated sensitive information.</div>
-</main>
-<footer class="site-footer">Demo Energy · Genesys Cloud support demonstration</footer>
+      <div class="context" aria-label="Current interaction context">
+        <span>Agent: <strong id="agentName">—</strong></span>
+        <span>Voice interaction: <strong id="voiceInteractionID">—</strong></span>
+      </div>
+    </section>
+
+    <section id="messengerView" class="messenger-panel" hidden>
+      <div id="messengerContainer" class="messenger-container">
+        <!--
+          Keep your existing Genesys Messenger deployment markup/script here.
+
+          The custom application controls the request form above.
+          Messenger is intentionally shown only after the form is submitted.
+
+          Your existing Messenger deployment can be left unchanged; the
+          JavaScript calls openMessengerWithContext() after collecting:
+            - requestPurpose
+            - premiseID
+            - voiceInteractionID
+            - originatingAgentName
+        -->
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
