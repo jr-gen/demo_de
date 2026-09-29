@@ -1,90 +1,129 @@
 (() => {
   "use strict";
 
+  const els = {
+    requestView: document.getElementById("requestView"),
+    messengerView: document.getElementById("messengerView"),
+    requestForm: document.getElementById("requestForm"),
+    purpose: document.getElementById("purpose"),
+    premiseID: document.getElementById("premiseID"),
+    submitButton: document.getElementById("submitButton"),
+    statusMessage: document.getElementById("statusMessage"),
+    agentName: document.getElementById("agentName"),
+    voiceInteractionID: document.getElementById("voiceInteractionID")
+  };
+
   const params = new URLSearchParams(window.location.search);
 
-  // Demo context is exposed here so a future launching application can replace
-  // these values. The interaction ID can also be passed as ?interactionId=...
-  const context = {
-    customerName: "Jane Smith",
-    accountNumber: "ACCT-104872",
-    serviceAddress: "1200 Congress Ave, Austin, TX 78701",
-    interactionId: params.get("interactionId") || "INT-DEMO-1001"
+  // Interaction Widget context supplied by Genesys Cloud.
+  const interactionContext = {
+    conversationId: params.get("conversationId") || "",
+    gcHostOrigin: params.get("gcHostOrigin") || "",
+    gcTargetEnv: params.get("gcTargetEnv") || ""
   };
 
-  const $ = (id) => {
-    const el = document.getElementById(id);
-    if (!el) throw new Error(`Missing element: ${id}`);
-    return el;
-  };
+  // This is intentionally a placeholder until the Genesys Cloud current-user
+  // lookup is wired in. For demo testing, an optional query-string value can
+  // populate the display without adding an agent input field:
+  // ?originatingAgentName=Jared%20Robertson
+  const originatingAgentName =
+    params.get("originatingAgentName") ||
+    window.__ORIGINATING_AGENT_NAME__ ||
+    "";
+
+  els.agentName.textContent = originatingAgentName || "—";
+  els.voiceInteractionID.textContent = interactionContext.conversationId || "—";
 
   function setStatus(message, isError = false) {
-    const el = $("status");
-    el.textContent = message;
-    el.classList.toggle("error", isError);
+    els.statusMessage.textContent = message;
+    els.statusMessage.classList.toggle("error", isError);
   }
 
-  function renderContext() {
-    $("customerName").textContent = context.customerName;
-    $("accountNumber").textContent = context.accountNumber;
-    $("serviceAddress").textContent = context.serviceAddress;
-    $("interactionId").textContent = context.interactionId;
+  function buildRequestContext() {
+    return {
+      requestPurpose: els.purpose.value,
+      premiseID: els.premiseID.value.trim(),
+      voiceInteractionID: interactionContext.conversationId,
+      originatingAgentName
+    };
   }
 
-  function setMessengerContext(purpose, onSuccess) {
-    if (typeof window.Genesys !== "function") {
-      throw new Error("Messenger is not loaded. Paste the Messenger Deployment snippet into index.html.");
+  /*
+   * Messenger integration hook.
+   *
+   * Replace the implementation below with the Messenger SDK calls used by
+   * your existing working deployment. The form and page lifecycle do not
+   * otherwise need to change.
+   *
+   * Expected outcome:
+   *   1. Set the four values as Web Messaging participant/custom attributes.
+   *   2. Start/open Messenger.
+   *   3. Show the Messenger UI in this iframe.
+   */
+  async function openMessengerWithContext(context) {
+    // Examples of the values available to your Messenger implementation:
+    // context.requestPurpose
+    // context.premiseID
+    // context.voiceInteractionID
+    // context.originatingAgentName
+
+    /*
+     * Keep your existing Messenger bootstrap/deployment code in this page.
+     *
+     * Once that code is loaded, wire the exact current Messenger SDK calls
+     * here. This function intentionally does not invent or hard-code SDK
+     * commands that may differ between your current deployment/configuration.
+     */
+
+    if (typeof window.openMessengerWithContextOverride === "function") {
+      await window.openMessengerWithContextOverride(context);
+      return;
     }
 
-    // Important: write the custom attributes first; open Messenger only after
-    // Database.set succeeds.
-    window.Genesys(
-      "command",
-      "Database.set",
-      {
-        messaging: {
-          customAttributes: {
-            customerName: context.customerName,
-            accountNumber: context.accountNumber,
-            serviceAddress: context.serviceAddress,
-            requestReason: purpose,
-            interactionId: context.interactionId
-          }
-        }
-      },
-      () => {
-        setStatus("Context captured. Opening Messenger…");
-        onSuccess();
-      },
-      (error) => {
-        console.error("Genesys Database.set failed:", error);
-        $("requestReason").disabled = false;
-        setStatus("The support conversation could not be initialized. Please try again.", true);
-      }
-    );
+    // Temporary development behavior: reveal the Messenger area so the
+    // existing embedded Messenger can occupy the iframe.
+    // Replace this with the actual SDK call when the deployment code is wired.
+    els.requestView.hidden = true;
+    els.messengerView.hidden = false;
   }
 
-  function startSupport() {
-    const select = $("requestReason");
-    const purpose = select.value;
-    if (!purpose) return;
+  els.requestForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setStatus("");
 
-    select.disabled = true;
-    setStatus("Preparing your support conversation…");
+    if (!els.purpose.value) {
+      setStatus("Choose a purpose.", true);
+      els.purpose.focus();
+      return;
+    }
+
+    if (!els.premiseID.value.trim()) {
+      setStatus("Enter a premise code or address.", true);
+      els.premiseID.focus();
+      return;
+    }
+
+    if (!interactionContext.conversationId) {
+      setStatus("The current voice interaction ID is unavailable.", true);
+      return;
+    }
+
+    const context = buildRequestContext();
+
+    els.submitButton.disabled = true;
+    els.submitButton.textContent = "Starting request…";
 
     try {
-      setMessengerContext(purpose, () => {
-        window.Genesys("command", "Messenger.open");
-      });
+      await openMessengerWithContext(context);
     } catch (error) {
-      console.error(error);
-      select.disabled = false;
-      setStatus(error.message || "Unable to start support.", true);
+      console.error("Unable to start Messenger:", error);
+      setStatus("Unable to start the specialist request. Please try again.", true);
+      els.submitButton.disabled = false;
+      els.submitButton.textContent = "Request Specialist Assistance";
     }
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    renderContext();
-    $("requestReason").addEventListener("change", startSupport);
   });
+
+  // Expose the resolved context for development/testing.
+  // Remove or restrict this in production if you do not want it available.
+  window.__NEW_CONSTRUCTION_CONTEXT__ = interactionContext;
 })();
