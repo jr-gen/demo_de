@@ -52,19 +52,20 @@
 
     <section id="messengerView" class="messenger-panel" hidden>
       <div id="messengerContainer" class="messenger-container">
-        <!--
-          Keep your existing Genesys Messenger deployment markup/script here.
-
-          The custom application controls the request form above.
-          Messenger is intentionally shown only after the form is submitted.
-
-          Your existing Messenger deployment can be left unchanged; the
-          JavaScript calls openMessengerWithContext() after collecting:
-            - requestPurpose
-            - premiseID
-            - voiceInteractionID
-            - originatingAgentName
-        -->
+        <script type="text/javascript" charset="utf-8">
+          (function (g, e, n, es, ys) {
+            g['_genesysJs'] = e;
+            g[e] = g[e] || function () {
+              (g[e].q = g[e].q || []).push(arguments)
+            };
+            g[e].t = 1 * new Date();
+            g[e].c = es;
+            ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
+          })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
+            environment: 'prod',
+            deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
+          });
+        </script>
       </div>
     </section>
   </main>
