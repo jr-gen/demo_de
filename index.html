@@ -3,73 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>New Construction Assistance</title>
+  <title>Duke Energy - New Construction Assistance</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <main class="app-shell" aria-labelledby="page-title">
-    <section id="requestView" class="panel">
-      <header class="panel-header">
-        <h1 id="page-title">New Construction Assistance</h1>
+<body class="integration-page">
+  <main class="app-shell">
+    <section class="card" aria-labelledby="page-title">
+      <header class="duke-header">
+        <div class="logo-wrap">
+          <img src="duke.png" alt="Duke Energy">
+        </div>
+        <div class="header-title">
+          <h1 id="page-title">New Construction Assistance</h1>
+        </div>
       </header>
 
-      <form id="requestForm" novalidate>
-        <div class="field">
-          <label for="purpose">Purpose</label>
-          <select id="purpose" name="requestPurpose" required>
-            <option value="" selected disabled>Choose a purpose...</option>
-            <option value="NAICS Code">NAICS Code</option>
-            <option value="Inspection Removal">Inspection Removal</option>
-          </select>
+      <div class="card-body">
+        <p class="instruction">
+          Provide either a premise ID or a complete service address, then select the type of specialist assistance needed.
+        </p>
+
+        <form id="requestForm" novalidate>
+          <fieldset class="section">
+            <legend>Premise Information</legend>
+
+            <div class="field">
+              <label for="premiseID">Premise ID</label>
+              <input
+                id="premiseID"
+                name="premiseID"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                maxlength="100"
+                placeholder="Enter premise ID">
+              <p class="field-help">Use this OR the address below.</p>
+            </div>
+
+            <div class="or-divider"><span>OR</span></div>
+
+            <div class="address-grid">
+              <div class="field field-wide">
+                <label for="street">Premise Street</label>
+                <input id="street" name="street" type="text" autocomplete="street-address" maxlength="150" placeholder="Street address">
+              </div>
+              <div class="field">
+                <label for="city">City</label>
+                <input id="city" name="city" type="text" autocomplete="address-level2" maxlength="80" placeholder="City">
+              </div>
+              <div class="field">
+                <label for="state">State</label>
+                <input id="state" name="state" type="text" autocomplete="address-level1" maxlength="40" placeholder="State">
+              </div>
+              <div class="field">
+                <label for="zip">ZIP</label>
+                <input id="zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="10" placeholder="ZIP code">
+              </div>
+            </div>
+          </fieldset>
+
+          <div id="statusMessage" class="status" role="alert" aria-live="polite"></div>
+
+          <div class="action-row" aria-label="Request type">
+            <button id="naicsButton" class="purpose-button" type="button">
+              <span class="button-title">NAICS Removal</span>
+              <span class="button-subtitle">Business Services / NAICS issue</span>
+            </button>
+
+            <button id="inspectionButton" class="purpose-button" type="button">
+              <span class="button-title">Inspection Obligation</span>
+              <span class="button-subtitle">Inspection / service-unavailable issue</span>
+            </button>
+          </div>
+        </form>
+
+        <div class="context" aria-label="Current Genesys interaction">
+          <div class="context-item">
+            <span class="context-label">Voice interaction</span>
+            <strong id="voiceInteractionID">Unavailable</strong>
+          </div>
         </div>
-
-        <div class="field">
-          <label for="premiseID">Premise Code / Address</label>
-          <input
-            id="premiseID"
-            name="premiseID"
-            type="text"
-            inputmode="text"
-            autocomplete="off"
-            spellcheck="false"
-            maxlength="250"
-            placeholder="Enter premise code or address"
-            required>
-        </div>
-
-        <button id="submitButton" class="primary-button" type="submit">
-          Request Specialist Assistance
-        </button>
-
-        <p id="statusMessage" class="status" role="status" aria-live="polite"></p>
-      </form>
-
-      <div class="context" aria-label="Current interaction context">
-        <span>Agent: <strong id="agentName">—</strong></span>
-        <span>Voice interaction: <strong id="voiceInteractionID">—</strong></span>
-      </div>
-    </section>
-
-    <section id="messengerView" class="messenger-panel" hidden>
-      <div id="messengerContainer" class="messenger-container">
-        <script type="text/javascript" charset="utf-8">
-          (function (g, e, n, es, ys) {
-            g['_genesysJs'] = e;
-            g[e] = g[e] || function () {
-              (g[e].q = g[e].q || []).push(arguments)
-            };
-            g[e].t = 1 * new Date();
-            g[e].c = es;
-            ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
-          })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
-            environment: 'prod',
-            deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
-          });
-        </script>
       </div>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="integration.js"></script>
 </body>
 </html>

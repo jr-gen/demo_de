@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duke Energy - Specialist Assistance</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="landing-page">
+  <main class="app-shell landing-shell">
+    <section class="card">
+      <header class="duke-header">
+        <div class="logo-wrap">
+          <img src="duke.png" alt="Duke Energy">
+        </div>
+        <div class="header-title">
+          <h1>New Construction Assistance</h1>
+        </div>
+      </header>
+
+      <div class="card-body landing-body">
+        <div class="request-summary" aria-label="Request summary">
+          <div class="summary-row">
+            <span>Request</span>
+            <strong id="requestPurpose">—</strong>
+          </div>
+          <div class="summary-row">
+            <span>Premise</span>
+            <strong id="premiseSummary">—</strong>
+          </div>
+          <div class="summary-row">
+            <span>Voice interaction</span>
+            <strong id="voiceInteractionID">—</strong>
+          </div>
+        </div>
+
+        <div id="landingStatus" class="landing-status" role="status" aria-live="polite">
+          Starting your specialist request…
+        </div>
+
+        <p class="landing-note">
+          Keep the customer on the current voice call while the New Construction specialist handles the request.
+        </p>
+
+        <div class="chat-launch">
+          <button id="openChatButton" type="button">Open specialist conversation</button>
+          <p id="chatHelp" class="chat-help">
+            Messenger will open after the request context is prepared.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Existing working Genesys Cloud Messenger deployment -->
+  <script type="text/javascript" charset="utf-8">
+    (function (g, e, n, es, ys) {
+      g['_genesysJs'] = e;
+      g[e] = g[e] || function () {
+        (g[e].q = g[e].q || []).push(arguments)
+      };
+      g[e].t = 1 * new Date();
+      g[e].c = es;
+      ys = document.createElement('script');
+      ys.async = 1;
+      ys.src = n;
+      ys.charset = 'utf-8';
+      document.head.appendChild(ys);
+    })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
+      environment: 'prod',
+      deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
+    });
+  </script>
+
+  <script src="landing.js"></script>
+</body>
+</html>
