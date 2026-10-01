@@ -26,7 +26,6 @@
     chatHelp: document.getElementById("chatHelp")
   };
 
-  let messengerReady = false;
   let started = false;
 
   el.purpose.textContent = requestContext.requestPurpose || "Not supplied";
@@ -72,47 +71,65 @@
     });
   }
 
-  function subscribe(eventName, callback) {
-    if (typeof window.Genesys === "function") {
-      window.Genesys("subscribe", eventName, callback);
+  async function waitForGenesys(timeoutMs = 15000) {
+    const startedAt = Date.now();
+
+    while (typeof window.Genesys !== "function") {
+      if (Date.now() - startedAt >= timeoutMs) {
+        throw new Error("Timed out waiting for Messenger bootstrap.");
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
 
-  subscribe("Messenger.ready", () => {
-    messengerReady = true;
+  async function setParticipantData() {
+    const premiseValue =
+      requestContext.premiseID ||
+      [
+        requestContext.premiseStreet,
+        requestContext.premiseCity,
+        requestContext.premiseState,
+        requestContext.premiseZip
+      ].filter(Boolean).join(", ");
 
-    // Database.set was queued before the Messenger bootstrap loaded.
-    // We can now open Messenger without setting participant data a second time.
-    if (!started && el.openChatButton.dataset.autoOpen === "true") {
-      startConversation();
-    }
-  });
+    await command("Database.set", {
+      messaging: {
+        customAttributes: {
+          requestPurpose: requestContext.requestPurpose,
+          premiseID: premiseValue,
+          voiceInteractionID: requestContext.voiceInteractionID,
+          originatingAgentName: requestContext.originatingAgentName
+        }
+      }
+    });
+  }
 
-  async function startConversation() {
+  // Auto-start is intentionally disabled. Messenger opens only after the
+  // user explicitly clicks the button.
+  el.openChatButton.addEventListener("click", async () => {
     if (started) {
       await command("Messenger.open");
       return;
     }
 
-    if (!messengerReady) {
-      setStatus("Preparing the specialist conversation…");
-      return;
-    }
-
-    started = true;
     el.openChatButton.disabled = true;
-    el.chatHelp.textContent = "Connecting to the New Construction specialist…";
+    setStatus("Preparing the specialist conversation…");
+    el.chatHelp.textContent = "Preparing request context…";
 
     try {
+      await waitForGenesys();
+      await setParticipantData();
+
       await command("Messenger.open");
+
+      started = true;
       setStatus(
         "Specialist conversation is open. Stay with the customer while the request is handled."
       );
       el.chatHelp.textContent =
         "Use the Messenger conversation to communicate with the specialist.";
     } catch (error) {
-      console.error(error);
-      started = false;
+      console.error("Unable to start Messenger:", error);
       el.openChatButton.disabled = false;
       setStatus(
         "We could not start the specialist conversation. Use the button below to try again.",
@@ -121,16 +138,7 @@
       el.chatHelp.textContent =
         "Check the Messenger deployment configuration and try again.";
     }
-  }
-
-  el.openChatButton.addEventListener("click", () => {
-    startConversation().catch((error) => {
-      console.error(error);
-      setStatus("Unable to open Messenger.", true);
-    });
   });
 
-  // Helpful for debugging in the demo environment.
-  // The values shown here are the same values queued to Messenger in landing.html.
   window.__NEW_CONSTRUCTION_REQUEST__ = requestContext;
 })();
