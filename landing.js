@@ -26,7 +26,6 @@
     chatHelp: document.getElementById("chatHelp")
   };
 
-  let databaseReady = false;
   let messengerReady = false;
   let started = false;
 
@@ -56,24 +55,6 @@
     el.landingStatus.classList.toggle("error", error);
   }
 
-  function subscribeOnce(eventName, callback) {
-    if (typeof window.Genesys !== "function") {
-      return;
-    }
-
-    window.Genesys("subscribe", eventName, callback);
-  }
-
-  subscribeOnce("Database.ready", () => {
-    databaseReady = true;
-    if (!started) startConversationIfReady();
-  });
-
-  subscribeOnce("Messenger.ready", () => {
-    messengerReady = true;
-    if (!started) startConversationIfReady();
-  });
-
   function command(commandName, payload = {}) {
     return new Promise((resolve, reject) => {
       if (typeof window.Genesys !== "function") {
@@ -91,87 +72,65 @@
     });
   }
 
-  async function waitFor(getter, label, timeoutMs = 15000) {
-    if (getter()) return;
-
-    await new Promise((resolve, reject) => {
-      const eventName = `__nc_${label}`;
-      const handler = () => {
-        window.removeEventListener(eventName, handler);
-        resolve();
-      };
-
-      window.addEventListener(eventName, handler, { once: true });
-      window.setTimeout(() => {
-        window.removeEventListener(eventName, handler);
-        reject(new Error(`Timed out waiting for ${label}.`));
-      }, timeoutMs);
-    });
+  function subscribe(eventName, callback) {
+    if (typeof window.Genesys === "function") {
+      window.Genesys("subscribe", eventName, callback);
+    }
   }
 
-  async function setParticipantData() {
-    await waitFor(() => databaseReady, "database-ready");
+  subscribe("Messenger.ready", () => {
+    messengerReady = true;
 
-    const premiseValue =
-      requestContext.premiseID ||
-      [
-        requestContext.premiseStreet,
-        requestContext.premiseCity,
-        requestContext.premiseState,
-        requestContext.premiseZip
-      ].filter(Boolean).join(", ");
+    // Database.set was queued before the Messenger bootstrap loaded.
+    // We can now open Messenger without setting participant data a second time.
+    if (!started && el.openChatButton.dataset.autoOpen === "true") {
+      startConversation();
+    }
+  });
 
-    await command("Database.set", {
-      messaging: {
-        customAttributes: {
-          requestPurpose: requestContext.requestPurpose,
-          premiseID: premiseValue,
-          voiceInteractionID: requestContext.voiceInteractionID,
-          originatingAgentName: requestContext.originatingAgentName
-        }
-      }
-    });
-  }
+  async function startConversation() {
+    if (started) {
+      await command("Messenger.open");
+      return;
+    }
 
-  async function startConversationIfReady() {
-    if (started) return;
-    if (typeof window.Genesys !== "function") return;
-    if (!databaseReady || !messengerReady) return;
+    if (!messengerReady) {
+      setStatus("Preparing the specialist conversation…");
+      return;
+    }
 
     started = true;
     el.openChatButton.disabled = true;
     el.chatHelp.textContent = "Connecting to the New Construction specialist…";
 
     try {
-      await setParticipantData();
       await command("Messenger.open");
-      setStatus("Specialist conversation is open. Stay with the customer while the request is handled.");
-      el.chatHelp.textContent = "Use the Messenger conversation below/right to communicate with the specialist.";
-      // Re-open is harmless if Messenger is already open; the user can use the
-      // standard Messenger widget to continue the interaction.
+      setStatus(
+        "Specialist conversation is open. Stay with the customer while the request is handled."
+      );
+      el.chatHelp.textContent =
+        "Use the Messenger conversation to communicate with the specialist.";
     } catch (error) {
       console.error(error);
       started = false;
       el.openChatButton.disabled = false;
-      setStatus("We could not start the specialist conversation. Use the button below to try again.", true);
-      el.chatHelp.textContent = "Check the Messenger deployment configuration and try again.";
+      setStatus(
+        "We could not start the specialist conversation. Use the button below to try again.",
+        true
+      );
+      el.chatHelp.textContent =
+        "Check the Messenger deployment configuration and try again.";
     }
   }
 
-  el.openChatButton.addEventListener("click", async () => {
-    if (started) {
-      await command("Messenger.open");
-      return;
-    }
-
-    try {
-      await startConversationIfReady();
-    } catch (error) {
+  el.openChatButton.addEventListener("click", () => {
+    startConversation().catch((error) => {
       console.error(error);
       setStatus("Unable to open Messenger.", true);
-    }
+    });
   });
 
   // Helpful for debugging in the demo environment.
+  // The values shown here are the same values queued to Messenger in landing.html.
   window.__NEW_CONSTRUCTION_REQUEST__ = requestContext;
 })();
