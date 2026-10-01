@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Construction Specialist Demo</title>
+  <style>
+    :root {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #20262e;
+      background: #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { padding: 0; background: #f5f7f9; }
+    .header {
+      background: #003b70;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+    }
+    .header img {
+      width: 42px;
+      height: auto;
+      display: block;
+    }
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .shell {
+      width: min(680px, calc(100% - 32px));
+      margin: 32px auto;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #d7dde3;
+      border-radius: 8px;
+      padding: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .sub {
+      margin: 0 0 18px;
+      color: #66717d;
+      font-size: 13px;
+    }
+    .field { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #3d4853;
+    }
+    input, select {
+      width: 100%;
+      height: 40px;
+      padding: 0 10px;
+      border: 1px solid #cfd6dd;
+      border-radius: 5px;
+      background: #fff;
+      color: #20262e;
+      font: inherit;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #2a659b;
+      box-shadow: 0 0 0 2px rgba(42,101,155,.12);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .meta {
+      background: #f6f8fa;
+      border: 1px solid #e0e5ea;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 4px;
+    }
+    .meta-row {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .meta-row span:first-child { color: #66717d; }
+    .meta-row span:last-child {
+      font-weight: 600;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+    .button {
+      width: 100%;
+      margin-top: 16px;
+      min-height: 42px;
+      border: 0;
+      border-radius: 5px;
+      background: #285f8c;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .button:hover { background: #214f76; }
+    .button:disabled { opacity: .6; cursor: wait; }
+    .status {
+      min-height: 18px;
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: #66717d;
+    }
+    .status.error { color: #b42318; }
+    .hidden-messenger {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+      left: -9999px;
+      top: -9999px;
+    }
+    .note {
+      margin-top: 16px;
+      font-size: 11px;
+      color: #66717d;
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100%, calc(100% - 20px)); margin: 20px auto; }
+      .card { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <img src="duke.png" alt="Duke Energy">
+    <div class="header-title">New Construction Specialist Demo</div>
+  </header>
+
+  <main class="shell">
+    <section class="card">
+      <h1>Start a Demo Specialist Interaction</h1>
+      <p class="sub">This page launches the real Genesys Messenger deployment with simulated originating-agent context.</p>
+
+      <div class="field">
+        <label for="purpose">Request Purpose</label>
+        <select id="purpose">
+          <option value="NAICS Removal" selected>NAICS Removal</option>
+          <option value="Inspection Obligation">Inspection Obligation</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="premiseID">Premise ID</label>
+        <input id="premiseID" value="123456789" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="street">Street</label>
+          <input id="street" value="123 Main Street" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" value="Charlotte" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="state">State</label>
+          <input id="state" value="NC" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="zip">ZIP</label>
+          <input id="zip" value="28202" inputmode="numeric" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="meta">
+        <div class="meta-row"><span>Demo originating agent</span><span id="agentName">Demo Start Service Agent</span></div>
+        <div class="meta-row"><span>Originating voice interaction</span><span id="voiceInteractionID">DEMO-VOICE-001</span></div>
+      </div>
+
+      <button id="startButton" class="button" type="button">Start Specialist Interaction</button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <p class="note">Messenger is intentionally not displayed on this page. The resulting interaction is handled in Genesys Cloud.</p>
+    </section>
+  </main>
+
+  <div id="messengerHost" class="hidden-messenger" aria-hidden="true"></div>
+
+  <!-- Real Genesys Messenger deployment snippet provided for the pilot. -->
+  <script>
+    (function (g, e, n, es, ys) {
+      g['_genesysJs'] = e;
+      g[e] = g[e] || function () {
+        (g[e].q = g[e].q || []).push(arguments)
+      };
+      g[e].t = 1 * new Date();
+      g[e].c = es;
+      ys = document.createElement('script');
+      ys.async = 1;
+      ys.src = n;
+      ys.charset = 'utf-8';
+      document.head.appendChild(ys);
+    })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
+      environment: 'prod',
+      deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
+    });
+  </script>
+
+  <script src="specialist-demo.js"></script>
+</body>
+</html>
