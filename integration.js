@@ -68,14 +68,16 @@
     if (!premiseID && !anyAddress) {
       return {
         valid: false,
-        message: "You must provide a premise ID or address before requesting specialist assistance."
+        message:
+          "You must provide a premise ID or address before requesting specialist assistance."
       };
     }
 
     if (anyAddress && !completeAddress) {
       return {
         valid: false,
-        message: "Please complete the premise address (street, city, state, and ZIP)."
+        message:
+          "Please complete the premise address (street, city, state, and ZIP)."
       };
     }
 
@@ -89,13 +91,17 @@
   function buildLandingUrl(requestPurpose, premise) {
     const url = new URL(landingUrl);
 
-    // Preserve Genesys context supplied by the Interaction Widget.
     if (context.voiceInteractionID) {
-      url.searchParams.set("voiceInteractionID", context.voiceInteractionID);
+      url.searchParams.set(
+        "voiceInteractionID",
+        context.voiceInteractionID
+      );
     }
+
     if (context.gcHostOrigin) {
       url.searchParams.set("gcHostOrigin", context.gcHostOrigin);
     }
+
     if (context.gcTargetEnv) {
       url.searchParams.set("gcTargetEnv", context.gcTargetEnv);
     }
@@ -105,58 +111,67 @@
     if (premise.premiseID) {
       url.searchParams.set("premiseID", premise.premiseID);
     } else {
-      url.searchParams.set("premiseStreet", premise.address.premiseStreet);
-      url.searchParams.set("premiseCity", premise.address.premiseCity);
-      url.searchParams.set("premiseState", premise.address.premiseState);
-      url.searchParams.set("premiseZip", premise.address.premiseZip);
+      url.searchParams.set(
+        "premiseStreet",
+        premise.address.premiseStreet
+      );
+      url.searchParams.set(
+        "premiseCity",
+        premise.address.premiseCity
+      );
+      url.searchParams.set(
+        "premiseState",
+        premise.address.premiseState
+      );
+      url.searchParams.set(
+        "premiseZip",
+        premise.address.premiseZip
+      );
     }
 
-    // Demo-only bridge; the landing page does not ask the agent to type a name.
     if (context.originatingAgentName) {
-      url.searchParams.set("originatingAgentName", context.originatingAgentName);
+      url.searchParams.set(
+        "originatingAgentName",
+        context.originatingAgentName
+      );
     }
 
     return url;
   }
 
-  function launch(requestPurpose) {
+  function prepareLaunch(event, requestPurpose) {
     const validation = validatePremise();
+
     if (!validation.valid) {
+      event.preventDefault();
       showStatus(validation.message, true);
+
       if (validation.message.startsWith("You must")) {
         el.premiseID.focus();
+      } else if (validation.message.startsWith("Please complete")) {
+        el.street.focus();
       }
+
       return;
     }
-
-    showStatus("Opening the specialist request…", false);
 
     const url = buildLandingUrl(requestPurpose, validation);
 
-    // This call is made directly from the button click so browsers are less
-    // likely to treat it as an unsolicited popup.
-    const popup = window.open(
-      url.href,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    // Use a normal user-initiated hyperlink with target="_blank".
+    // This avoids window.open(), so the page does not implement its own
+    // popup logic or display a "allow pop-ups" warning.
+    event.currentTarget.href = url.href;
 
-    if (!popup) {
-      showStatus("The specialist request page could not be opened. Allow pop-ups for this site and try again.", true);
-      return;
-    }
-
-    showStatus("Specialist request opened in a new browser tab.", false);
+    showStatus("Opening the specialist request…", false);
   }
 
-  el.naicsButton.addEventListener("click", () => {
-    launch("NAICS Removal");
+  el.naicsButton.addEventListener("click", (event) => {
+    prepareLaunch(event, "NAICS Removal");
   });
 
-  el.inspectionButton.addEventListener("click", () => {
-    launch("Inspection Obligation");
+  el.inspectionButton.addEventListener("click", (event) => {
+    prepareLaunch(event, "Inspection Obligation");
   });
 
-  // Expose read-only context for demo troubleshooting.
   window.__NEW_CONSTRUCTION_CONTEXT__ = context;
 })();
