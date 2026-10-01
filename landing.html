@@ -52,68 +52,21 @@
     </section>
   </main>
 
-  <!-- Existing working Genesys Cloud Messenger deployment.
-       Participant data is queued BEFORE the Messenger bootstrap is loaded so
-       the inbound message flow can read it during its initial execution. -->
+  <!-- Existing working Genesys Cloud Messenger deployment -->
   <script type="text/javascript" charset="utf-8">
-    (() => {
-      const params = new URLSearchParams(window.location.search);
-
-      const requestPurpose = params.get("requestPurpose") || "";
-      const premiseID = params.get("premiseID") || "";
-      const premiseStreet = params.get("premiseStreet") || "";
-      const premiseCity = params.get("premiseCity") || "";
-      const premiseState = params.get("premiseState") || "";
-      const premiseZip = params.get("premiseZip") || "";
-      const voiceInteractionID = params.get("voiceInteractionID") || "";
-      const originatingAgentName =
-        params.get("originatingAgentName") ||
-        window.__ORIGINATING_AGENT_NAME__ ||
-        "";
-
-      const premiseValue =
-        premiseID ||
-        [premiseStreet, premiseCity, premiseState, premiseZip]
-          .filter(Boolean)
-          .join(", ");
-
-      (function (g, e, n, es, ys) {
-        g['_genesysJs'] = e;
-        g[e] = g[e] || function () {
-          (g[e].q = g[e].q || []).push(arguments)
-        };
-        g[e].t = 1 * new Date();
-        g[e].c = es;
-
-        // Queue this before loading the Messenger bootstrap. This preserves
-        // command order so participant data exists before the conversation
-        // starts and the inbound message flow executes Get Participant Data.
-        g[e](
-          "command",
-          "Database.set",
-          {
-            messaging: {
-              customAttributes: {
-                requestPurpose: requestPurpose,
-                premiseID: premiseValue,
-                voiceInteractionID: voiceInteractionID,
-                originatingAgentName: originatingAgentName
-              }
-            }
-          }
-        );
-
-        ys = document.createElement('script');
-        ys.async = 1;
-        ys.src = n;
-        ys.charset = 'utf-8';
-        document.head.appendChild(ys);
-      })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
-        environment: 'prod',
-        deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
-      });
-    })();
-  </script>
+  (function (g, e, n, es, ys) {
+    g['_genesysJs'] = e;
+    g[e] = g[e] || function () {
+      (g[e].q = g[e].q || []).push(arguments)
+    };
+    g[e].t = 1 * new Date();
+    g[e].c = es;
+    ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
+  })(window, 'Genesys', 'https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js', {
+    environment: 'prod',
+    deploymentId: 'de24ccb3-878d-48c3-84c7-4380d3f4bca9'
+  });
+</script>
 
   <script src="landing.js"></script>
 </body>
