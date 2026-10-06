@@ -27,7 +27,7 @@
     <p class="hint">Stand-in for the customer call. Accept it in Genesys Cloud to open the integration tool.</p>
 
     <button id="mockBtn" type="button">2. Send mock specialist request</button>
-    <p class="hint">Sends sample request data to the queue to show the specialist view. Ends the test conversation if it is still open.</p>
+    <p class="hint">Sends sample request data to the queue to show the specialist view. Disconnect the test conversation in Genesys Cloud first, or use a private window. Messenger allows one active conversation per browser.</p>
 
     <div id="log" role="status" aria-live="polite"></div>
   </main>
@@ -43,32 +43,30 @@
     };
 
     const log = (msg) => (document.getElementById("log").textContent = msg);
-    const ignoreError = (promise) => promise.catch(() => {});
 
-    // Each button starts a fresh conversation (Messenger allows one active conversation per browser session).
-    async function newConversation(attributes) {
-      await ignoreError(genesysCommand("MessagingService.clearConversation"));
-      await ignoreError(genesysCommand("Messenger.close"));
+    // Uses only Database.set + Messenger.open (native Messenger). With "Automatically Start
+    // Conversations" on, opening Messenger starts the conversation and runs the inbound flow.
+    async function startConversation(attributes) {
       await genesysCommand("Database.set", { messaging: { customAttributes: attributes } });
-      await ignoreError(genesysCommand("Messenger.open")); // starts the conversation (Automatically Start Conversations)
+      await genesysCommand("Messenger.close", {}, 1500).catch(() => {}); // reset if already open
+      await genesysCommand("Messenger.open");
     }
 
-    function wire(id, action, doneMsg) {
+    function wire(id, attributes, doneMsg) {
       document.getElementById(id).addEventListener("click", async () => {
         document.querySelectorAll("button").forEach((b) => (b.disabled = true));
         log("Working…");
-        try { await action(); log(doneMsg); }
+        try { await startConversation(attributes); log(doneMsg); }
         catch (err) { console.error(err); log("Something went wrong. Check the browser console."); }
         finally { document.querySelectorAll("button").forEach((b) => (b.disabled = false)); }
       });
     }
 
-    wire("testBtn", async () => {
-      await newConversation({ requestPurpose: "", premiseID: "", voiceInteractionID: "", originatingAgentName: "" });
-      await genesysCommand("MessagingService.sendMessage", { message: "Test conversation" });
-    }, "Test conversation sent. Accept it in Genesys Cloud.");
+    wire("testBtn",
+      { requestPurpose: "", premiseID: "", voiceInteractionID: "", originatingAgentName: "" },
+      "Test conversation started. Accept it in Genesys Cloud.");
 
-    wire("mockBtn", () => newConversation(MOCK_REQUEST),
+    wire("mockBtn", MOCK_REQUEST,
       "Mock request sent. Accept it in Genesys Cloud to show the specialist view.");
   </script>
 </body>
