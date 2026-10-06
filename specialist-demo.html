@@ -3,57 +3,73 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>New Construction Specialist Demo</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Demo Launcher</title>
+  <style>
+    body { margin: 0; font: 14px/1.4 Arial, Helvetica, sans-serif; color: #20262e; background: #f3f5f7; }
+    main { max-width: 420px; margin: 40px auto; padding: 20px; background: #fff; border: 1px solid #d8dde3; border-radius: 4px; }
+    h1 { margin: 0 0 4px; font-size: 18px; }
+    p { margin: 0 0 16px; color: #647180; font-size: 13px; }
+    button { display: block; width: 100%; margin-top: 12px; padding: 11px; font: inherit; font-weight: 700;
+             color: #fff; background: #444c56; border: 0; border-radius: 3px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: default; }
+    .hint { margin: 4px 0 0; font-size: 12px; }
+    #log { margin-top: 16px; font-size: 12px; color: #1f6b43; white-space: pre-line; }
+    /* Messenger is not shown on this page; it runs in the background. */
+    #genesys-messenger { visibility: hidden !important; }
+  </style>
 </head>
 <body>
-  <header class="header">
-    <img src="duke3.svg" alt="Duke Energy">
-    <h1>Specialist Demo Launcher</h1>
-  </header>
+  <main>
+    <h1>Demo Launcher</h1>
+    <p>Internal demo tool. Creates interactions in Genesys Cloud without showing Messenger.</p>
 
-  <main class="card">
-    <p class="muted">Demo only. Starts a real Messenger conversation with mocked originating-agent context. Handle the interaction in Genesys Cloud.</p>
+    <button id="testBtn" type="button">1. Start test conversation</button>
+    <p class="hint">Stand-in for the customer call. Accept it in Genesys Cloud to open the integration tool.</p>
 
-    <label for="agentName">Originating agent (mock)</label>
-    <input id="agentName" value="Demo Start Service Agent">
+    <button id="mockBtn" type="button">2. Send mock specialist request</button>
+    <p class="hint">Sends sample request data to the queue to show the specialist view. Ends the test conversation if it is still open.</p>
 
-    <label for="voiceInteractionID">Voice interaction ID (mock)</label>
-    <input id="voiceInteractionID" value="DEMO-VOICE-001">
-
-    <label for="premise">Premise ID or Address</label>
-    <input id="premise" value="123456789">
-
-    <div class="buttons">
-      <button type="button" data-purpose="NAICS Removal">NAICS Removal</button>
-      <button type="button" data-purpose="Inspection Obligation">Inspection Obligation</button>
-    </div>
-
-    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <div id="log" role="status" aria-live="polite"></div>
   </main>
 
   <script src="messenger.js"></script>
   <script>
-    const $ = (id) => document.getElementById(id);
+    // Sample data for the specialist view. Edit as needed.
+    const MOCK_REQUEST = {
+      requestPurpose: "NAICS Removal",
+      premiseID: "123456789",
+      voiceInteractionID: "00000000-0000-0000-0000-000000000000",
+      originatingAgentName: "Taylor Brooks"
+    };
 
-    document.querySelectorAll("[data-purpose]").forEach((button) => {
-      button.addEventListener("click", async () => {
+    const log = (msg) => (document.getElementById("log").textContent = msg);
+    const ignoreError = (promise) => promise.catch(() => {});
+
+    // Each button starts a fresh conversation (Messenger allows one active conversation per browser session).
+    async function newConversation(attributes) {
+      await ignoreError(genesysCommand("MessagingService.clearConversation"));
+      await ignoreError(genesysCommand("Messenger.close"));
+      await genesysCommand("Database.set", { messaging: { customAttributes: attributes } });
+      await ignoreError(genesysCommand("Messenger.open")); // starts the conversation (Automatically Start Conversations)
+    }
+
+    function wire(id, action, doneMsg) {
+      document.getElementById(id).addEventListener("click", async () => {
         document.querySelectorAll("button").forEach((b) => (b.disabled = true));
-        try {
-          await startSpecialistRequest({
-            requestPurpose: button.dataset.purpose,
-            premiseID: $("premise").value.trim(),
-            voiceInteractionID: $("voiceInteractionID").value.trim(),
-            originatingAgentName: $("agentName").value.trim()
-          });
-          $("status").textContent = "Request sent. Accept the interaction in Genesys Cloud.";
-        } catch (err) {
-          console.error(err);
-          $("status").textContent = "Unable to start Messenger. Check the browser console.";
-          document.querySelectorAll("button").forEach((b) => (b.disabled = false));
-        }
+        log("Working…");
+        try { await action(); log(doneMsg); }
+        catch (err) { console.error(err); log("Something went wrong. Check the browser console."); }
+        finally { document.querySelectorAll("button").forEach((b) => (b.disabled = false)); }
       });
-    });
+    }
+
+    wire("testBtn", async () => {
+      await newConversation({ requestPurpose: "", premiseID: "", voiceInteractionID: "", originatingAgentName: "" });
+      await genesysCommand("MessagingService.sendMessage", { message: "Test conversation" });
+    }, "Test conversation sent. Accept it in Genesys Cloud.");
+
+    wire("mockBtn", () => newConversation(MOCK_REQUEST),
+      "Mock request sent. Accept it in Genesys Cloud to show the specialist view.");
   </script>
 </body>
 </html>
