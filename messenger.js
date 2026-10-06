@@ -16,10 +16,14 @@ const MESSENGER = {
   document.head.appendChild(ys);
 })(window, "Genesys", "https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js", MESSENGER);
 
-// Promise wrapper for Genesys("command", ...).
-function genesysCommand(name, payload = {}) {
-  return new Promise((resolve, reject) =>
-    window.Genesys("command", name, payload, resolve, reject));
+// Promise wrapper for Genesys("command", ...). Times out so a stuck command can't hang the page.
+function genesysCommand(name, payload = {}, timeoutMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${name} timed out`)), timeoutMs);
+    window.Genesys("command", name, payload,
+      (r) => { clearTimeout(timer); resolve(r); },
+      (e) => { clearTimeout(timer); reject(e); });
+  });
 }
 
 // Participant data must be set BEFORE Messenger starts the conversation,
