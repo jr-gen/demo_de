@@ -1,0 +1,74 @@
+/* Simple responsive styles for the Interaction Widget iframe. */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 14px/1.4 Arial, Helvetica, sans-serif;
+  color: #20262e;
+  background: #f3f5f7;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #123f68;
+  color: #fff;
+}
+.header img { width: 90px; background: #fff; padding: 6px; border-radius: 2px; }
+.header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+
+.card {
+  margin: 12px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #d8dde3;
+  border-radius: 3px;
+}
+
+.muted { margin: 0 0 14px; color: #647180; font-size: 13px; }
+
+label { display: block; margin: 12px 0 4px; font-size: 12px; font-weight: 700; }
+input {
+  width: 100%;
+  padding: 9px 10px;
+  font: inherit;
+  border: 1px solid #c7ced6;
+  border-radius: 3px;
+}
+input:focus { outline: 2px solid #2f6f9f; outline-offset: -1px; }
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+button {
+  padding: 11px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: #123f68;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: #0c2f4f; }
+button:disabled { opacity: 0.6; cursor: default; }
+
+.status { min-height: 18px; margin: 12px 0 0; font-size: 13px; color: #1f6b43; }
+.status.error { color: #b42318; }
+
+.context {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #e3e7eb;
+  font-size: 12px;
+}
+.context dt { color: #647180; }
+.context dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }

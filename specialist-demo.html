@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Construction Specialist Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <img src="duke3.svg" alt="Duke Energy">
+    <h1>Specialist Demo Launcher</h1>
+  </header>
+
+  <main class="card">
+    <p class="muted">Demo only. Starts a real Messenger conversation with mocked originating-agent context. Handle the interaction in Genesys Cloud.</p>
+
+    <label for="agentName">Originating agent (mock)</label>
+    <input id="agentName" value="Demo Start Service Agent">
+
+    <label for="voiceInteractionID">Voice interaction ID (mock)</label>
+    <input id="voiceInteractionID" value="DEMO-VOICE-001">
+
+    <label for="premise">Premise ID or Address</label>
+    <input id="premise" value="123456789">
+
+    <div class="buttons">
+      <button type="button" data-purpose="NAICS Removal">NAICS Removal</button>
+      <button type="button" data-purpose="Inspection Obligation">Inspection Obligation</button>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <script src="messenger.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    document.querySelectorAll("[data-purpose]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        document.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        try {
+          await startSpecialistRequest({
+            requestPurpose: button.dataset.purpose,
+            premiseID: $("premise").value.trim(),
+            voiceInteractionID: $("voiceInteractionID").value.trim(),
+            originatingAgentName: $("agentName").value.trim()
+          });
+          $("status").textContent = "Request sent. Accept the interaction in Genesys Cloud.";
+        } catch (err) {
+          console.error(err);
+          $("status").textContent = "Unable to start Messenger. Check the browser console.";
+          document.querySelectorAll("button").forEach((b) => (b.disabled = false));
+        }
+      });
+    });
+  </script>
+</body>
+</html>
