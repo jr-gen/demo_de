@@ -4,11 +4,35 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Duke Energy - New Construction Assistance</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Narrow, stacked layout that resizes to fit the Interaction Widget iframe. */
+    * { box-sizing: border-box; }
+    body { margin: 0; font: clamp(12px, 3.5vw, 14px)/1.4 Arial, Helvetica, sans-serif; color: #20262e; background: #f3f5f7; }
+    .header, .card { width: 100%; max-width: 480px; margin: 0 auto; }
+    .header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; background: #123f68; color: #fff; }
+    .header img { width: clamp(56px, 18vw, 80px); background: #fff; padding: 4px; border-radius: 2px; }
+    .header h1 { margin: 0; font-size: 1.15em; font-weight: 600; }
+    .card { padding: 12px; background: #fff; border: 1px solid #d8dde3; border-top: 0; }
+    .muted { margin: 0 0 10px; color: #647180; font-size: 0.92em; }
+    label { display: block; margin: 10px 0 4px; font-size: 0.85em; font-weight: 700; }
+    input { width: 100%; padding: 8px; font: inherit; border: 1px solid #c7ced6; border-radius: 3px; }
+    input:focus { outline: 2px solid #2f6f9f; outline-offset: -1px; }
+    .buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    button { width: 100%; padding: 10px; font: inherit; font-weight: 700; color: #fff; background: #123f68; border: 0; border-radius: 3px; cursor: pointer; }
+    button:hover:not(:disabled) { background: #0c2f4f; }
+    button:disabled { opacity: 0.6; cursor: default; }
+    .status { min-height: 1.4em; margin: 10px 0 0; font-size: 0.92em; color: #1f6b43; }
+    .status:empty { display: none; }
+    .status.error { color: #b42318; }
+    .privacy { margin: 12px 0 0; font-size: 0.8em; color: #647180; }
+    .context { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #e3e7eb; font-size: 0.85em; }
+    .context dt { color: #647180; }
+    .context dd { margin: 0 0 6px; font-weight: 600; overflow-wrap: anywhere; }
+  </style>
 </head>
 <body>
   <header class="header">
-    <img src="duke3.svg" alt="Duke Energy">
+    <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIGJ5IE1hcnN1cGlsYW1pIC0tPgo8c3ZnCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNTg1OCIKICAgd2lkdGg9IjEwMjQiCiAgIGhlaWdodD0iMzQxIgogICB2aWV3Qm94PSItNS44NTUxNTEzIC01Ljg1NTE1MTMgNjIwLjQ2MjQ0MjYgMjA2Ljg4MjAxMjYiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM1ODYwIiAvPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1ODIwIgogICAgIHN0eWxlPSJmaWxsOiMwMDU5ODQ7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnplcm87c3Ryb2tlOm5vbmUiCiAgICAgZD0ibSAyMjkuMjk5NTQsMTAuNzk4Mzc4IC0xNy4yMDI1LDAgMCw4MC4yOTc1MSAxNi45MDg3NSwwIGMgMjcuODgxMjUsMCA0NS4yMjUsLTE1LjU1NjI1IDQ1LjIyNSwtNDAuNTg2MjEgMCwtMjQuMTA2MyAtMTcuNjM3NSwtMzkuNzExMyAtNDQuOTMxMjUsLTM5LjcxMTMgeiBtIC01LjM2NjI1LDEwLjk2NjMgMi4zNjc1LDAgYyAxNi40NzUsMCAzNi4wOTM3NSw0LjgyODcgMzYuMDkzNzUsMjguOTg4NyAwLDI0LjE1NjI2IC0xOS42MTg3NSwyOC45ODUwMSAtMzYuMDkzNzUsMjguOTg1MDEgbCAtMi4zNjc1LDAgMCwtNTcuOTczNzEgeiBtIDEwNC41OTg3NSwzNi4xODYyIGMgMCwxNS44NDUwMSAtNS43OTUsMjMuNTMwMDEgLTE3LjgyNzUsMjMuNTMwMDEgLTEyLjAzLDAgLTE3Ljg3NSwtNy42MzYyNSAtMTcuODc1LC0yMy41MzAwMSBsIDAsLTQ3LjE1MjUgLTExLjgzNjI1LDAgMCw1MC40ODc1IGMgMCwxOC43OTM3NiAxMS44ODUsMzEuNDUwMDEgMjkuNjYyNSwzMS40NTAwMSAxNy43ODM3NSwwIDI5LjY2ODc1LC0xMi42MDc1IDI5LjY2ODc1LC0zMS40NTAwMSBsIDAsLTUwLjQ4NzUgLTExLjc5MjUsMCAwLDQ3LjE1MjUgeiBtIDQ1LjQxNSwtMTAuOTE3NSAzNi4yMzYyNSwtMzYuMjgzNyAtMTUuNzAzNzUsMCAtMzEuNjksMzIuNDE2MiAwLC0zMi40MTYyIC0xMS44NCwwIDAsODAuMzQ2MjEgMTEuODQsMCAwLC0zMy4xNDUwMSAyLjc1NSwtMi42NTYyIDI4Ljk4Mzc1LDM1Ljk0MjQ2IDE2LjEzNzUsMCAtMzYuNzE4NzUsLTQ0LjIwMzc2IG0gODUuMDM1LDMzLjA0NjI2IC0zMi4yMjc1LDAgMCwtMjcuNDg5OTYgMzEuMzU3NSwwIDAsLTExLjAxNSAtMzEuMzU3NSwwIDAsLTE5LjgxIDMyLjIyNzUsMCAwLC0xMS4wMTUgLTQ0LjAxMzc1LDAgMCw4MC4zNDYyMSA0NC4wMTM3NSwwIDAsLTExLjAxNjI1IG0gLTI0Ni44ODUsMTEzLjQzNzUxMiA0My45NjUsMCAwLC0xMS4wMTUgLTMyLjEyODc1LDAgMCwtMjcuNDkgMzEuMzA3NSwwIDAsLTEwLjk2NzUgLTMxLjMwNzUsMCAwLC0xOS44NTM3NSAzMi4xMjg3NSwwIDAsLTEwLjk3MTI1IC00My45NjUsMCAwLDgwLjI5NzUgbSAxMzQuMzYsMCA0NC4xMTEyNSwwIDAsLTExLjAxNSAtMzIuMjc1LDAgMCwtMjcuNDkgMzEuMzU3NSwwIDAsLTEwLjk2NzUgLTMxLjM1NzUsMCAwLC0xOS44NTM3NSAzMi4yNzUsMCAwLC0xMC45NzEyNSAtNDQuMTExMjUsMCAwLDgwLjI5NzUgbSAwLDAgNDQuMTExMjUsMCAwLC0xMS4wMTUgLTMyLjI3NSwwIDAsLTI3LjQ5IDMxLjM1NzUsMCAwLC0xMC45Njc1IC0zMS4zNTc1LDAgMCwtMTkuODUzNzUgMzIuMjc1LDAgMCwtMTAuOTcxMjUgLTQ0LjExMTI1LDAgMCw4MC4yOTc1IG0gLTIyLjEyODc1LC04MC4yOTc1IDAsNTYuMjQgLTUxLjQwMTI1LC01Ni4yNCAtNy4yMDI1LDAgMCw4MC4yOTc1IDExLjgzNjI1LDAgMCwtNTYuNzY3NSA1MC45NzEyNSw1Ni43Njc1IDcuNTM4NzUsMCAwLC04MC4yOTc1IC0xMS43NDI1LDAgbSAxMjEuNDE2MjUsMjMuMzQgYyAwLjAxLC03LjkwNSAtNC4xMTYyNSwtMTUuMjM1IC0xMC44NzM3NSwtMTkuMzI2MjUgLTYuNjE2MjUsLTMuMDQ2MjUgLTEzLjkwMjUsLTQuMzQxMjUgLTIxLjE2MjUsLTMuNzcgbCAtMTIuNzA1LDAgMCw4MC4wNTM3NSAxMS44MzYyNSwwIDAsLTMzLjA5NSAyLjY2LDAgMjIuOTkzNzUsMzMuMDk1IDE0LjQ5NzUsMCAtMjUuMjIsLTM0LjEwNjI1IGMgMTAuODM1LC0yLjA5ODc1IDE4LjQ4NjI1LC0xMS44MzEyNSAxNy45NzM3NSwtMjIuODUxMjUgeiBtIC0xMS4yMTEyNSwwLjQzNSBjIDAsOS4xNzg3NSAtNi4wODg3NSwxMy4yODYyNSAtMTkuNzEyNSwxMy4yODYyNSBsIC0yLjA3NSwwIDAsLTI2LjI4NSAxLjU0Mzc1LDAgYyAxMy44MTc1LDAgMjAuMjQzNzUsNC4xNTUgMjAuMjQzNzUsMTIuOTUgbCAwLDAuMDQ4OCB6IG0gNjMuMDk2MjUsMjUuOTkxMjUgMjAuMTk1LDAgYyAtMS4xMDg3NSwxMi4wMzEyNSAtMTMuODEzNzUsMjEuMTYxMjUgLTI0LjU0MTI1LDIxLjE2MTI1IC0xNi40OCwtMC44IC0yOS40Mzg3NSwtMTQuMzc1IC0yOS40NzI1LC0zMC44NzM3NSAtMC40LC0xMy4wOTEyNSA3Ljc5MjUsLTI0LjkxMjUgMjAuMTk1LC0yOS4xMzYyNSAxMi40MDI1LC00LjIxODc1IDI2LjEwMzc1LDAuMTU2MjUgMzMuNzcsMTAuNzc3NSBsIDAuNzI3NSwwLjk2NjI1IDguMTE1LC04LjAxNzUgLTAuNTgxMjUsLTAuNzc2MjUgYyAtMTIuMTM4NzUsLTE0Ljk5IC0zMi45NjM3NSwtMTkuNzIxMjUgLTUwLjM5LC0xMS40NSAtMTcuNDI3NSw4LjI3MTI1IC0yNi45Mjg3NSwyNy4zOTc1IC0yMi45OTM3NSw0Ni4yODM3NSAzLjkzNjI1LDE4Ljg4MjUgMjAuMjg4NzUsMzIuNjIyNSAzOS41NjUsMzMuMjQyNSAyMC41ODEyNSwwLjQzIDM3LjYyMjUsLTE1Ljg5ODc1IDM4LjA3MTI1LC0zNi40OCBsIDAsLTYuNjY1IC0zMi42NiwwIDAsMTAuOTY3NSB6IG0gODIuNDc1LC00OS43NjYyNSAtMTguNjAzNzUsMzIuMzczNzUgLTE4LjU1LC0zMi4zNzM3NSAtMTMuNjI3NSwwIDI2LjI4Mzc1LDQ1LjUxMjUgMCwzNC43ODUgMTEuODM2MjUsMCAwLC0zNC43ODUgMjYuMjgzNzUsLTQ1LjUxMjUgLTEzLjYyMjUsMCBtIDQuMTk4NzUsNjguNjU3NSBjIC0wLjAyMzcsLTYuNzUyNSA1LjQyNSwtMTIuMjQ2MjUgMTIuMTc4NzUsLTEyLjI3NSA2Ljc0NzUsLTAuMDI1IDEyLjI0NSw1LjQyMzc1IDEyLjI3LDEyLjE3NzUgMC4wMjUsNi43NDc1IC01LjQyNSwxMi4yNDYyNSAtMTIuMTcyNSwxMi4yNyAtMy4yMTc1LDAuMDI1IC02LjMxMzc1LC0xLjIyNSAtOC42MDM3NSwtMy40ODEyNSAtMi4yOTUsLTIuMjU2MjUgLTMuNTk4NzUsLTUuMzMyNSAtMy42MjM3NSwtOC41NSAwLDAgLTAuMDQ4OCwtMC4wOTI1IC0wLjA0ODgsLTAuMTQxMjUgeiBtIDEuOTgyNSwwIGMgLTAuMDIzOCw1LjY1Mzc1IDQuNTM2MjUsMTAuMjYzNzUgMTAuMTk2MjUsMTAuMjg3NSA1LjY1Mzc1LDAuMDMgMTAuMjYzNzUsLTQuNTM2MjUgMTAuMjg3NSwtMTAuMTk1IDAuMDMsLTUuNjUzNzUgLTQuNTM2MjUsLTEwLjI2Mzc1IC0xMC4xOSwtMTAuMjg3NSAtMi43MDUsLTAuMDE1IC01LjMwMjUsMS4wNDg3NSAtNy4yMjc1LDIuOTQ4NzUgLTEuOTE4NzUsMS45MDM3NSAtMy4wMDI1LDQuNDkyNSAtMy4wMTc1LDcuMTk3NSBsIC0wLjA0ODcsMC4wNDg3IHogbSAxNS44NDUsNi45NTc1IC0yLjI3LDAgLTMuNDc3NSwtNi4zMzI1IC0yLjU1NzUsMCAwLDYuMjgzNzUgLTEuOTgyNSwwIDAsLTEzLjY3NjI1IDUuNzQ2MjUsMCBjIDIuNDY2MjUsMCA0LjgzNSwwLjcyNzUgNC44MzUsMy42Mjc1IDAuMDc3NSwwLjkyMjUgLTAuMjEsMS44MzYyNSAtMC44MTEyNSwyLjU0Mzc1IC0wLjYsMC43MDg3NSAtMS40NTUsMS4xNDc1IC0yLjM3NzUsMS4yMjEyNSBsIC0wLjQzNSwwIDMuMzMsNi4zMzI1IHogbSAtOC4zMDUsLTExLjc0MjUgMCwzLjQzMjUgMi4xMjM3NSwwIGMgMS44MzYyNSwwIDQuMzkzNzUsMC4yODc1IDQuMzkzNzUsLTEuNTQ3NSAwLC0xLjgzNjI1IC0xLjQ0NSwtMS44MzYyNSAtMy4wOSwtMS44MzYyNSBsIC0zLjQyNzUsLTAuMDQ4OCB6IE0gMTE5LjY3NDU0LDE3MS40ODU5IGMgLTQuNDE4NzUsNC42OTc1IC0xMC4yOTI1LDcuNzU4NzUgLTE2LjY3LDguNjk2MjUgLTkuNjYyNDk3LDAuNTgxMjUgLTE5LjA4MTI0NywtNS4zNjEyNSAtMjEuOTMzNzQ3LC0yNi45NTc1IGwgLTM5LjAzNzUsLTExLjQ5ODc1IGMgMTcuMDU2MjUsNjAuNzMyNSA2NC4yNTc0OTcsNTguNjAzNzUgODAuNDkzNzQ3LDMyLjE3NzUgMS4xMDc1LC0xLjczODc1IDAuNzcxMjUsLTIuNjA3NSAwLC0zLjA0MjUgLTAuNzc3NSwtMC40MzM3NSAtMS43Mzg3NSwtMC40MzM3NSAtMi44NTI1LDAuNjI1IHogbSAwLC0xNTkuNDMyNTIyIGMgLTE1LjcwMjUsLTMxLjQwMjUgLTcxLjM1NzQ5NywtMC4zODYyIC04MS4wMTk5OTcsODAuNjgyNTEgLTAuODAxMjUsMy43MjEyNSAwLjk1MjUsNy41MjAwMTIgNC4yOTYyNSw5LjMyNjI2MiA0Ljk0MTI1LDIuNjkxMjUgMTAuMzI3NSw0LjQ3MjUgMTUuODk4NzUsNS4yNjM3NSA0LjI2NzUsMS4wMDEyNSA4LjY2MjUsMS4zNzI1IDEzLjA0MjUsMS4xMTM3NSAzLjkyNSwtMC4xNzEyNSA3LjE3NzUsLTMuMTE1IDcuNzI4NzUsLTcuMDA3NSA4LjMxMTI1LC04Ni45NjI0NzIgMjguMTY4NzQ3LC0xMDYuNjczNzcxOCAzNy4zOTc0OTcsLTg3Ljk3NzQ3MiAxLjA2LDIuMTcyNSAzLjc3LDEuMDE1IDIuNjA3NSwtMS40MDEzIGwgMC4wNDg3LDAgeiIgLz4KICA8cGF0aAogICAgIGlkPSJwYXRoNTgyMiIKICAgICBzdHlsZT0iZmlsbDojNTRiOTQ4O2ZpbGwtb3BhY2l0eToxO2ZpbGwtcnVsZTpub256ZXJvO3N0cm9rZTpub25lIgogICAgIGQ9Im0gMTEwLjA2MDc5LDM5LjQ5NDY3OCBjIC0zLjkwNjI1LC0wLjYyIC03LjgxNzUsMS4wOTg3IC0xMCw0LjM5ODcgLTIuMzA0OTk3LDQuMTQ2MyAtMy44MDg3NDcsOC42ODEzIC00LjQ0ODc0NywxMy4zODM4IC0xLjAzLDQuNzU2MiAtMS4zNDI1LDkuNjQzNyAtMC45MTc1LDE0LjQ5MjQ2IDAuNzUxMjUsMi41ODc1IDMuMTA1LDQuMzc1IDUuODAxMjQ3LDQuMzk1IDE3Ljc3NzUsMS4xMTI1IDY5Ljk1NSw4LjU1Mzc1IDc3LjI5ODc1LDIzLjcyNSA0LjgzNSwxMC40MzUwMTIgLTkuNjYyNSwxMy4wOTEyNjIgLTIwLjM4NSwxNS44NDUwMTIgLTMuNTcsMC42NDM3NSAtNi4zNjI1LDMuNDM3NSAtNy4wMDc1LDcuMDA2MjUgLTEuMjIsNS4zOTYyNSAtMC4xNywxMS4wNSAyLjkwMTI1LDE1LjY1NSAxLjM1NzUsMi4yOSA0LjMyMTI1LDMuMDQ2MjUgNi42MTYyNSwxLjY4ODc1IGwgMC42MywtMC40MzM3NSBjIDUuNTI2MjUsLTMuNjQyNSAxMC40MjM3NSwtOC4xNiAxNC40OTEyNSwtMTMuMzgzNzUgMzQuODgzNzUsLTQ4LjY1MjUxMiAtMzguMjYxMjUsLTg2LjI0MTI3MiAtNjQuOTgsLTg2Ljc3MjQ3MiB6IiAvPgogIDxwYXRoCiAgICAgaWQ9InBhdGg1ODI0IgogICAgIHN0eWxlPSJmaWxsOiMyNmJjZDc7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnplcm87c3Ryb2tlOm5vbmUiCiAgICAgZD0iTSAxMjcuOTg1NzksMTE5LjE2MjE1IEMgNDAuNDkwNzkzLDEyOC44MjQ2NSAtMjguNTUyOTU3LDg4LjgyNDYzOCAyMy43MjMyOTMsNzkuMTEzMzg4IGMgMCwwIDYuNjY4NzUsLTEuNTQ3NSA3LjkyMzc1LC01LjMxNzUgMS4yNTUsLTMuNzY1IDEuNjQxMjUsLTQuODI4NzEgMy4wOTEyNSwtMTAuMzg2MjEgMC45MTc1LC0zLjQyNzUgMS43Mzg3NSwtNS4zNjEzIDIuNjEyNSwtOC4wMTc1IDEuMzk2MjUsLTQuMTA2MyAtMS4yMTEyNSwtNi41NzEzIC03LjAwNzUsLTMuNzIgLTQ3Ljc4MjUsMjMuMzM0OTYgLTMzLjgxNzUsNjYuOTEzNzIyIDUuMTcxMjUsODguNzQ5OTcyIDI1LjUyNzUsMTQuOTIxMjUgNTUuNjQ1LDE5Ljk2MTI1IDg0LjY0Mzc0NywxNC4xNTUgNC44MTUsLTAuOTEyNSA5LjAwODc1LC0zLjgyNzUgMTEuNTQ3NSwtOC4wMTc1IDMuOTMxMjUsLTUuOTAzNzUgNS42NDUsLTEzLjAwNzUgNC44MywtMjAuMDUzNzUgMC4wNzI1LC0yLjE4MjUgLTAuODU1LC00LjI3NzUgLTIuNTI1LC01LjY4ODc1IC0xLjY2NSwtMS40MTEyNSAtMy44ODYyNSwtMS45ODc1IC02LjAyNSwtMS41NTc1IGwgMCwtMC4wOTc1IHoiIC8+Cjwvc3ZnPgo8IS0tIHZlcnNpb246IDIwMTcxMjIzLCBvcmlnaW5hbCBzaXplOiA2MDguNzUyMTQgMTk1LjE3MTcxLCBib3JkZXI6IDMlIC0tPgo=" alt="Duke Energy">
     <h1>New Construction Assistance</h1>
   </header>
 
@@ -25,13 +49,110 @@
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
 
+    <p class="privacy">Do not enter passwords, authentication codes, payment-card data, bank-account information, full Social Security numbers, security-question answers, or unrelated sensitive personal information.</p>
+
     <dl class="context">
-      <dt>Agent</dt><dd id="agentName">—</dd>
-      <dt>Voice interaction</dt><dd id="voiceInteractionID">—</dd>
+      <dt>Voice interaction</dt><dd id="voiceInteractionID">Unavailable</dd>
     </dl>
   </main>
 
-  <script src="messenger.js"></script>
-  <script src="app.js"></script>
+  <script>
+    // ------------------------------------------------------------------
+    // Duke Energy - New Construction intake page (single file).
+    // Loaded by the Genesys Cloud Interaction Widget. Widget URL:
+    //   https://<host>/index.html?conversationId={{gcConversationId}}
+    //
+    // Flow: read voice interaction ID from URL -> agent picks a purpose ->
+    // set participant data -> open Messenger. The inbound message flow
+    // (DE_STARTSTOP_Moves_Chat) looks up the agent name itself.
+    // ------------------------------------------------------------------
+
+    // EDIT PER ENVIRONMENT: deployment ID of the Messenger deployment for this host.
+    // "prod" is the bootstrap name for us-east-1 (apps.mypurecloud.com).
+    const MESSENGER = {
+      environment: "prod",
+      deploymentId: "53792783-a621-4299-8170-a0aec53aadf8"
+    };
+
+    // Standard Genesys Messenger bootstrap snippet.
+    (function (g, e, n, es, ys) {
+      g["_genesysJs"] = e;
+      g[e] = g[e] || function () { (g[e].q = g[e].q || []).push(arguments); };
+      g[e].t = 1 * new Date();
+      g[e].c = es;
+      ys = document.createElement("script"); ys.async = 1; ys.src = n; ys.charset = "utf-8";
+      document.head.appendChild(ys);
+    })(window, "Genesys", "https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js", MESSENGER);
+
+    const $ = (id) => document.getElementById(id);
+    const buttons = () => document.querySelectorAll("button");
+    const setStatus = (msg, isError = false) => {
+      $("status").textContent = msg;
+      $("status").classList.toggle("error", isError);
+    };
+
+    // Resolves when Messenger has loaded. Rejects after 10 s (for example, host not on the deployment allow list).
+    const messengerReady = new Promise((resolve, reject) => {
+      window.Genesys("subscribe", "Messenger.ready", resolve);
+      setTimeout(() => reject(new Error("Messenger.ready timed out")), 10000);
+    });
+    messengerReady.catch(() => {}); // avoid an unhandled rejection before the first click
+
+    // Promise wrapper for Genesys("command", ...). Times out so a stuck command can't hang the page.
+    function genesysCommand(name, payload = {}, timeoutMs = 10000) {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(name + " timed out")), timeoutMs);
+        window.Genesys("command", name, payload,
+          (r) => { clearTimeout(timer); resolve(r); },
+          (e) => { clearTimeout(timer); reject(e); });
+      });
+    }
+
+    // Participant data must be set BEFORE Messenger starts the conversation,
+    // so the inbound message flow can read it with Get Participant Data.
+    // Names are case-sensitive and must match Architect.
+    async function startSpecialistRequest(request) {
+      await messengerReady;
+      await genesysCommand("Database.set", {
+        messaging: {
+          customAttributes: {
+            requestPurpose: String(request.requestPurpose),
+            premiseID: String(request.premiseID),
+            voiceInteractionID: String(request.voiceInteractionID)
+          }
+        }
+      });
+      await genesysCommand("Messenger.open");
+    }
+
+    // Voice interaction ID comes from the {{gcConversationId}} widget placeholder.
+    const conversationId = (new URLSearchParams(location.search).get("conversationId") || "").trim();
+    if (conversationId) $("voiceInteractionID").textContent = conversationId;
+
+    document.querySelectorAll("[data-purpose]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const premise = $("premise").value.trim();
+        if (!premise) return setStatus("Enter a premise ID or address before selecting a request type.", true);
+        if (!conversationId) return setStatus("The voice interaction ID is unavailable. Reopen this tool from the active call.", true);
+
+        buttons().forEach((b) => (b.disabled = true));
+        setStatus("Sending request\u2026");
+
+        try {
+          await startSpecialistRequest({
+            requestPurpose: button.dataset.purpose,
+            premiseID: premise,
+            voiceInteractionID: conversationId
+          });
+          setStatus("Request sent. Continue in the Messenger window.");
+          $("premise").disabled = true; // Messenger allows one active conversation per browser
+        } catch (err) {
+          console.error(err);
+          buttons().forEach((b) => (b.disabled = false));
+          setStatus("We could not reach New Construction. Please try again or use the standard transfer process.", true);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
