@@ -3,7 +3,7 @@
 
 const MESSENGER = {
   environment: "prod",
-  deploymentId: "de24ccb3-878d-48c3-84c7-4380d3f4bca9"
+  deploymentId: "53792783-a621-4299-8170-a0aec53aadf8"
 };
 
 // Standard Genesys Messenger bootstrap snippet.
@@ -15,6 +15,11 @@ const MESSENGER = {
   ys = document.createElement("script"); ys.async = 1; ys.src = n; ys.charset = "utf-8";
   document.head.appendChild(ys);
 })(window, "Genesys", "https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js", MESSENGER);
+
+// Resolves when Messenger has finished loading.
+const messengerReady = new Promise((resolve) => {
+  window.Genesys("subscribe", "Messenger.ready", resolve);
+});
 
 // Promise wrapper for Genesys("command", ...). Times out so a stuck command can't hang the page.
 function genesysCommand(name, payload = {}, timeoutMs = 10000) {
@@ -28,16 +33,26 @@ function genesysCommand(name, payload = {}, timeoutMs = 10000) {
 
 // Participant data must be set BEFORE Messenger starts the conversation,
 // so the inbound message flow can read it with Get Participant Data.
+// Attribute names are case-sensitive and must match Architect.
 async function startSpecialistRequest(request) {
-  await genesysCommand("Database.set", {
-    messaging: {
-      customAttributes: {
-        requestPurpose: request.requestPurpose,
-        premiseID: request.premiseID,          // Premise ID or address
-        voiceInteractionID: request.voiceInteractionID,
-        originatingAgentName: request.originatingAgentName
-      }
+  await messengerReady;
+
+  const attrs = {
+    requestPurpose: request.requestPurpose,
+    premiseID: request.premiseID,                  // Premise ID or address
+    voiceInteractionID: request.voiceInteractionID,
+    originatingAgentName: request.originatingAgentName // optional; flow looks up the name
+  };
+
+  // Values must be strings. Skip empty or undefined values.
+  const customAttributes = {};
+  Object.keys(attrs).forEach((key) => {
+    const value = attrs[key];
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      customAttributes[key] = String(value);
     }
   });
+
+  await genesysCommand("Database.set", { messaging: { customAttributes } });
   await genesysCommand("Messenger.open");
 }
