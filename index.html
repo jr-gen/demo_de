@@ -98,6 +98,13 @@
     });
     messengerReady.catch(() => {}); // avoid an unhandled rejection before the first click
 
+    // The Database plugin has its own ready event. Subscribe before any Database command.
+    // The event fires once, so subscribe at load. If it never fires, continue after 5 s.
+    const databaseReady = new Promise((resolve) => {
+      window.Genesys("subscribe", "Database.ready", resolve);
+      setTimeout(resolve, 5000);
+    });
+
     // Promise wrapper for Genesys("command", ...). Times out so a stuck command can't hang the page.
     function genesysCommand(name, payload = {}, timeoutMs = 10000) {
       return new Promise((resolve, reject) => {
@@ -108,20 +115,27 @@
       });
     }
 
+    // Attributes from the last request. Messenger clears them when a conversation is cleared
+    // (for example, when the agent selects "Start new"), so the page sets them again.
+    let lastAttributes = null;
+    function setAttributes(attributes) {
+      return genesysCommand("Database.set", { messaging: { customAttributes: attributes } });
+    }
+    window.Genesys("subscribe", "MessagingService.conversationCleared", () => {
+      if (lastAttributes) setAttributes(lastAttributes).catch((e) => console.error(e));
+    });
+
     // Participant data must be set BEFORE Messenger starts the conversation,
     // so the inbound message flow can read it with Get Participant Data.
     // Names are case-sensitive and must match Architect.
     async function startSpecialistRequest(request) {
-      await messengerReady;
-      await genesysCommand("Database.set", {
-        messaging: {
-          customAttributes: {
-            requestPurpose: String(request.requestPurpose),
-            premiseID: String(request.premiseID),
-            voiceInteractionID: String(request.voiceInteractionID)
-          }
-        }
-      });
+      await Promise.all([messengerReady, databaseReady]);
+      lastAttributes = {
+        requestPurpose: String(request.requestPurpose),
+        premiseID: String(request.premiseID),
+        voiceInteractionID: String(request.voiceInteractionID)
+      };
+      await setAttributes(lastAttributes);
       await genesysCommand("Messenger.open");
     }
 
