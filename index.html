@@ -125,18 +125,29 @@
       if (lastAttributes) setAttributes(lastAttributes).catch((e) => console.error(e));
     });
 
-    // End of chat (specialist, bot, or flow disconnects): wait so the customer can read the closing
-    // message, then clear the stored Messenger session so the next chat starts clean.
-    // Messenger.clear shuts Messenger down until the page reloads.
+    // Messenger keeps its session in browser storage, so an earlier chat can come back when the page loads.
+    // Keep Messenger closed until the agent sends a request.
+    messengerReady.then(() => genesysCommand("Messenger.close").catch(() => {}));
+
+    // End of chat. Messenger.clear removes the stored session and shuts Messenger down until the page reloads.
+    //  - Chat from this page load ended: leave Messenger open so the agent can read the closing message.
+    //    The ended chat is cleared the next time the page loads (see the next case).
+    //  - Ended chat restored from storage at page load (no request sent yet): clear now, then reload
+    //    once so Messenger starts clean.
+    let requestSent = false;
     window.Genesys("subscribe", "MessagingService.conversationDisconnected", () => {
-      setStatus("Chat ended. Reopen this tool from the next call to start a new request.");
-      setTimeout(() => genesysCommand("Messenger.clear").catch((e) => console.error(e)), 10000);
+      if (requestSent) {
+        setStatus("Chat ended. Reopen this tool from the next call to start a new request.");
+      } else {
+        genesysCommand("Messenger.clear").then(() => location.reload()).catch((e) => console.error(e));
+      }
     });
 
     // Participant data must be set BEFORE Messenger starts the conversation,
     // so the inbound message flow can read it with Get Participant Data.
     // Names are case-sensitive and must match Architect.
     async function startSpecialistRequest(request) {
+      requestSent = true;
       await Promise.all([messengerReady, databaseReady]);
       lastAttributes = {
         requestPurpose: String(request.requestPurpose),
