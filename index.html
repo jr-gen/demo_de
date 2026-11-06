@@ -125,6 +125,14 @@
       if (lastAttributes) setAttributes(lastAttributes).catch((e) => console.error(e));
     });
 
+    // End of chat (specialist, bot, or flow disconnects): wait so the customer can read the closing
+    // message, then clear the stored Messenger session so the next chat starts clean.
+    // Messenger.clear shuts Messenger down until the page reloads.
+    window.Genesys("subscribe", "MessagingService.conversationDisconnected", () => {
+      setStatus("Chat ended. Reopen this tool from the next call to start a new request.");
+      setTimeout(() => genesysCommand("Messenger.clear").catch((e) => console.error(e)), 10000);
+    });
+
     // Participant data must be set BEFORE Messenger starts the conversation,
     // so the inbound message flow can read it with Get Participant Data.
     // Names are case-sensitive and must match Architect.
